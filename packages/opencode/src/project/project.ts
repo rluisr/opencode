@@ -280,11 +280,13 @@ export namespace Project {
 
   export async function list() {
     const keys = await Storage.list(["project"])
-    const projects = await Promise.all(keys.map((x) => Storage.read<Info>(x)))
-    return projects.map((project) => ({
-      ...project,
-      sandboxes: project.sandboxes?.filter((x) => existsSync(x)),
-    }))
+    const projects = await Promise.all(keys.map((x) => Storage.read<Info>(x).catch(() => undefined)))
+    return projects
+      .filter((project): project is Info => !!project)
+      .map((project) => ({
+        ...project,
+        sandboxes: project.sandboxes?.filter((x) => existsSync(x)),
+      }))
   }
 
   export const update = fn(
